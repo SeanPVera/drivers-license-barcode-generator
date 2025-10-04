@@ -2,6 +2,32 @@ import Cocoa
 import CoreImage
 
 class ViewController: NSViewController {
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        sexPopupButton.removeAllItems()
+        sexPopupButton.addItems(withTitles: ["Male", "Female", "Not Specified"])
+        sexPopupButton.selectItem(at: 0)
+
+        eyeColor.removeAllItems()
+        eyeColor.addItems(withTitles: DataElementEyeColor.allCases.map { $0.rawValue })
+        eyeColor.selectItem(at: 0)
+
+        statePopupButton.removeAllItems()
+        statePopupButton.addItems(withTitles: ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"])
+        statePopupButton.selectItem(at: 0)
+
+        expirationDatePicker.dateValue = Date()
+        issueDatePicker.dateValue = Date()
+        dateOfBirthDatePicker.dateValue = Date()
+
+        documentDiscriminatorTextField.stringValue = (0..<25).map{ _ in String(Int.random(in: 0...9)) }.joined()
+
+        countryPopupButton.removeAllItems()
+        countryPopupButton.addItems(withTitles: DataElementCountryIdentificationCode.allCases.map { $0.rawValue })
+        countryPopupButton.selectItem(at: 0)
+    }
+
     @IBOutlet var imageView: NSImageView!
     
     @IBOutlet var firstNameTextField: NSTextField!
@@ -19,6 +45,8 @@ class ViewController: NSViewController {
     @IBOutlet var sexPopupButton: NSPopUpButton!
     @IBOutlet var eyeColor: NSPopUpButton!
     @IBOutlet var customerIDNumberTextField: NSTextField!
+    @IBOutlet var documentDiscriminatorTextField: NSTextField!
+    @IBOutlet var countryPopupButton: NSPopUpButton!
     
     @IBOutlet var jurisdictionSpecificVehicleClassTextField: NSTextField!
     @IBOutlet var jurisdictionSpecificEndorsementCodesTextField: NSTextField!
@@ -30,7 +58,7 @@ class ViewController: NSViewController {
     }
     
     private var jurisdictionSpecificRestrictionCodes: String {
-        return jurisdictionSpecificEndorsementCodesTextField.stringValue
+        return jurisdictionSpecificRestrictionCodesTextField.stringValue
     }
     
     private var jurisdictionSpecificVehicleClass: String {
@@ -62,11 +90,21 @@ class ViewController: NSViewController {
     }
 
     private var physicalDescriptionSex: DataElementGender {
-        return .Male // TODO: Get this from the picker
+        switch sexPopupButton.selectedItem?.title {
+        case "Male":
+            return .Male
+        case "Female":
+            return .Female
+        default:
+            return .NotSpecified
+        }
     }
     
     private var physicalDescriptionEyeColor: DataElementEyeColor {
-        return .Hazel // TODO: Get this from the picker
+        if let selectedTitle = eyeColor.selectedItem?.title {
+            return DataElementEyeColor(rawValue: selectedTitle) ?? .Unknown
+        }
+        return .Unknown
     }
     
     private var physicalDescriptionHeight: Int {
@@ -82,7 +120,7 @@ class ViewController: NSViewController {
     }
 
     private var addressJurisdictionCode: String {
-        return "OH" // TODO: How do you get the value of a popup?
+        return statePopupButton.selectedItem?.title ?? ""
     }
 
     private var addressPostalCode: String {
@@ -94,11 +132,14 @@ class ViewController: NSViewController {
     }
     
     private var documentDiscriminator: String {
-        return "1234567890123456789012345" // TODO: Create some kind of generator for this and populate a field in the UI w/ it initially
+        return documentDiscriminatorTextField.stringValue
     }
 
     private var countryIdentification: DataElementCountryIdentificationCode {
-        return .US // TODO
+        if let selectedTitle = countryPopupButton.selectedItem?.title {
+            return DataElementCountryIdentificationCode(rawValue: selectedTitle) ?? .US
+        }
+        return .US
     }
     
     var dataElements:[Any] {
@@ -121,10 +162,7 @@ class ViewController: NSViewController {
             DAK(addressPostalCode),
             DAQ(customerIDNumber),
             DCF(documentDiscriminator),
-            DCG(countryIdentification),
-            DDE(.No), // TODO: This should be calculated inside of barcode
-            DDF(.No), // TODO: This should be calculated inside of barcode
-            DDG(.No), // TODO: This should be calculated inside of barcode
+            DCG(countryIdentification)
         ]
     }
 
