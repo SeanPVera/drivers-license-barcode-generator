@@ -2,6 +2,7 @@ import Foundation
 
 class DAK: DataElement<String>, DataElementFormatable {
     func format() -> String {
-        return "DAK\(DataElementFormatter.formatString(data, length: 11))"
+        let normalized = DataElementFormatter.formatPostalCode(postalCode: data)
+        return "DAK\(DataElementFormatter.formatString(normalized, length: 11))"
     }
 }

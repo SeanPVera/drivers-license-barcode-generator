@@ -1,7 +1,9 @@
 import CoreImage
 
 extension CIImage {
-    func toCGImage() -> CGImage! {
-        return CIContext(options: nil).createCGImage(self, from: extent)
+    private static let sharedContext = CIContext(options: nil)
+
+    func toCGImage() -> CGImage? {
+        return CIImage.sharedContext.createCGImage(self, from: extent)
     }
 }

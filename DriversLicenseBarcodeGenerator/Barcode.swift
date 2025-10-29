@@ -12,7 +12,7 @@ class Barcode {
     static let segmentSeparator = "\u{0D}"
     static let fileType = "ANSI "
     
-    let dataElements: [Any]
+    let dataElements: [DataElementFormatable]
     let issuerIdentificationNumber: String
     let AAMVAVersionNumber: String
     let jurisdictionVersionNumber: String
@@ -21,7 +21,7 @@ class Barcode {
         return description.data(using: String.Encoding.ascii)!
     }
 
-    init(dataElements: [Any], issuerIdentificationNumber: String, AAMVAVersionNumber: String, jurisdictionVersionNumber: String) {
+    init(dataElements: [DataElementFormatable], issuerIdentificationNumber: String, AAMVAVersionNumber: String, jurisdictionVersionNumber: String) {
         self.issuerIdentificationNumber = issuerIdentificationNumber
         self.dataElements = dataElements
         self.AAMVAVersionNumber = AAMVAVersionNumber
@@ -32,7 +32,7 @@ class Barcode {
 extension Barcode: CustomStringConvertible {
     var description: String {
         let header = Header(issuerIdentificationNumber: issuerIdentificationNumber, AAMVAVersionNumber: AAMVAVersionNumber, jurisdictionVersionNumber: jurisdictionVersionNumber, numberOfEntries: "\(dataElements.count)").description
-        let formattedDataElemented = dataElements.map { ($0 as! DataElementFormatable).format() }
+        let formattedDataElemented = dataElements.map { $0.format() }
         let joined = formattedDataElemented.joined(separator: Barcode.dataElementSeparator)
 
         return "\(header)\(joined)"
