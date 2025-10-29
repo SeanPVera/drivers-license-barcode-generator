@@ -96,6 +96,9 @@
 		FCC617641F87CE53002820C5 /* DataElementCardType.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCC617631F87CE53002820C5 /* DataElementCardType.swift */; };
 		FCC617661F87CE6B002820C5 /* DataElementLengthType.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCC617651F87CE6B002820C5 /* DataElementLengthType.swift */; };
 		FCDFB1F71F87B167003FBC60 /* DCATests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCDFB1F61F87B167003FBC60 /* DCATests.swift */; };
+
+                FD0B3A001234567800000001 /* HeightParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD0B3A021234567800000003 /* HeightParser.swift */; };
+                FD0B3A011234567800000002 /* HeightParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD0B3A031234567800000004 /* HeightParserTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -169,6 +172,9 @@
 		FCC617631F87CE53002820C5 /* DataElementCardType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataElementCardType.swift; sourceTree = "<group>"; };
 		FCC617651F87CE6B002820C5 /* DataElementLengthType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataElementLengthType.swift; sourceTree = "<group>"; };
 		FCDFB1F61F87B167003FBC60 /* DCATests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DCATests.swift; sourceTree = "<group>"; };
+
+                FD0B3A021234567800000003 /* HeightParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeightParser.swift; sourceTree = "<group>"; };
+                FD0B3A031234567800000004 /* HeightParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeightParserTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -284,6 +290,7 @@
 				FC30F6FC1F86D132002C5657 /* Data Elements */,
 				FCB324951F87E755006AF035 /* DataElementFormatable.swift */,
 				FC16BE3A1F8800BD00065602 /* DataElementEyeColor.swift */,
+				FD0B3A021234567800000003 /* HeightParser.swift */,
 				FC257AD41F88249300BB0FC6 /* Extensions */,
 			);
 			path = DriversLicenseBarcodeGenerator;
@@ -296,6 +303,7 @@
 				FC53340C1F8679E200D546F1 /* BarcodeTests.swift */,
 				FC53340E1F8679E200D546F1 /* Info.plist */,
 				FC30F6E91F868B04002C5657 /* HeaderTests.swift */,
+				FD0B3A031234567800000004 /* HeightParserTests.swift */,
 				FC30F73F1F86D56E002C5657 /* Data Elements */,
 				FCB3248C1F87D40A006AF035 /* DataElementFormatterTests.swift */,
 				FCB324931F87D59A006AF035 /* DataElementLengthTypeTests.swift */,
@@ -410,6 +418,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				FC30F72C1F86D4C1002C5657 /* DAQ.swift in Sources */,
+				FD0B3A001234567800000001 /* HeightParser.swift in Sources */,
 				FCC617641F87CE53002820C5 /* DataElementCardType.swift in Sources */,
 				FC30F7081F86D458002C5657 /* DCS.swift in Sources */,
 				FC30F7231F86D4A7002C5657 /* DAI.swift in Sources */,
@@ -454,6 +463,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				FC30F72D1F86D4C1002C5657 /* DAQ.swift in Sources */,
+				FD0B3A011234567800000002 /* HeightParserTests.swift in Sources */,
 				FC30F7091F86D458002C5657 /* DCS.swift in Sources */,
 				FC16BE3C1F8801CB00065602 /* DataElementEyeColor.swift in Sources */,
 				FC16BE2A1F87FA4300065602 /* DCSTests.swift in Sources */,

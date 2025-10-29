@@ -1,6 +1,6 @@
 import Foundation
 
-enum DataElementEyeColor: String {
+enum DataElementEyeColor: String, CaseIterable {
     case Black = "BKL"
     case Blue = "BLU"
     case Brown = "BRO"

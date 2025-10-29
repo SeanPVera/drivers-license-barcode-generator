@@ -1150,7 +1150,37 @@
                                                                 <real value="3.4028234663852886e+38"/>
                                                             </customSpacing>
                                                         </stackView>
-                                                        <stackView distribution="fill" orientation="horizontal" alignment="bottom" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="z6r-y4-Q6u" userLabel="State">
+                                                                                                                <stackView distribution="fill" orientation="horizontal" alignment="bottom" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="q6H-G9-hT7" userLabel="State Filter">
+                                                            <rect key="frame" x="0.0" y="139" width="195" height="22"/>
+                                                            <subviews>
+                                                                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="7lJ-6k-1U7">
+                                                                    <rect key="frame" x="-2" y="0.0" width="43" height="17"/>
+                                                                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Filter" id="CRF-ZM-BQ7">
+                                                                        <font key="font" metaFont="system"/>
+                                                                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                                                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                                                    </textFieldCell>
+                                                                </textField>
+                                                                <searchField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="9wC-hb-hce">
+                                                                    <rect key="frame" x="45" y="0.0" width="150" height="22"/>
+                                                                    <searchFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" usesSingleLineMode="YES" bezelStyle="round" placeholderString="Filter states" id="78Y-NX-TMr">
+                                                                        <font key="font" metaFont="system"/>
+                                                                    </searchFieldCell>
+                                                                    <connections>
+                                                                        <action selector="jurisdictionFilterChanged:" target="5gI-5U-AMq" id="l7p-3p-g0N"/>
+                                                                    </connections>
+                                                                </searchField>
+                                                            </subviews>
+                                                            <visibilityPriorities>
+                                                                <integer value="1000"/>
+                                                                <integer value="1000"/>
+                                                            </visibilityPriorities>
+                                                            <customSpacing>
+                                                                <real value="3.4028234663852886e+38"/>
+                                                                <real value="3.4028234663852886e+38"/>
+                                                            </customSpacing>
+                                                        </stackView>
+<stackView distribution="fill" orientation="horizontal" alignment="bottom" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="z6r-y4-Q6u" userLabel="State">
                                                             <rect key="frame" x="0.0" y="104" width="111" height="21"/>
                                                             <subviews>
                                                                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Mu4-9h-bfr">
@@ -1214,7 +1244,48 @@
                                                                 <real value="3.4028234663852886e+38"/>
                                                             </customSpacing>
                                                         </stackView>
-                                                        <stackView distribution="fill" orientation="horizontal" alignment="bottom" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="gAX-g4-HdJ" userLabel="First Name">
+                                                                                                                <stackView distribution="fill" orientation="horizontal" alignment="bottom" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="yLu-7X-a4N" userLabel="Document Discriminator">
+                                                            <rect key="frame" x="0.0" y="34" width="350" height="22"/>
+                                                            <subviews>
+                                                                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="J2p-lC-Q0n">
+                                                                    <rect key="frame" x="-2" y="0.0" width="104" height="17"/>
+                                                                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Document ID" id="a4r-Iv-ZCw">
+                                                                        <font key="font" metaFont="system"/>
+                                                                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                                                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                                                    </textFieldCell>
+                                                                </textField>
+                                                                <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="3zr-u6-dXn">
+                                                                    <rect key="frame" x="106" y="0.0" width="150" height="22"/>
+                                                                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="NO" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="pDA-xQ-CKb">
+                                                                        <font key="font" metaFont="system"/>
+                                                                        <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                                                                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                                                    </textFieldCell>
+                                                                </textField>
+                                                                <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="kLq-fh-wqn">
+                                                                    <rect key="frame" x="260" y="-7" width="102" height="32"/>
+                                                                    <buttonCell key="cell" type="push" title="Regenerate" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="owH-fI-pMs">
+                                                                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                                                        <font key="font" metaFont="system"/>
+                                                                    </buttonCell>
+                                                                    <connections>
+                                                                        <action selector="regenerateDocumentDiscriminatorWithSender:" target="5gI-5U-AMq" id="O40-hl-8yD"/>
+                                                                    </connections>
+                                                                </button>
+                                                            </subviews>
+                                                            <visibilityPriorities>
+                                                                <integer value="1000"/>
+                                                                <integer value="1000"/>
+                                                                <integer value="1000"/>
+                                                            </visibilityPriorities>
+                                                            <customSpacing>
+                                                                <real value="3.4028234663852886e+38"/>
+                                                                <real value="3.4028234663852886e+38"/>
+                                                                <real value="3.4028234663852886e+38"/>
+                                                            </customSpacing>
+                                                        </stackView>
+<stackView distribution="fill" orientation="horizontal" alignment="bottom" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="gAX-g4-HdJ" userLabel="First Name">
                                                             <rect key="frame" x="0.0" y="34" width="195" height="22"/>
                                                             <subviews>
                                                                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="JxH-0c-trT">
@@ -1340,6 +1411,16 @@
                                     <stackView distribution="fill" orientation="horizontal" alignment="top" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="A9D-XI-MDK" userLabel="Buttons">
                                         <rect key="frame" x="808" y="0.0" width="84" height="21"/>
                                         <subviews>
+                                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="YJx-wL-XTV">
+                                                <rect key="frame" x="-6" y="-7" width="96" height="32"/>
+                                                <buttonCell key="cell" type="push" title="Copy Data" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="w2X-ws-6Ex">
+                                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                                    <font key="font" metaFont="system"/>
+                                                </buttonCell>
+                                                <connections>
+                                                    <action selector="copyBarcodeDataWithSender:" target="5gI-5U-AMq" id="0sx-lh-5dQ"/>
+                                                </connections>
+                                            </button>
                                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="PPf-PW-dC1">
                                                 <rect key="frame" x="-6" y="-7" width="96" height="32"/>
                                                 <buttonCell key="cell" type="push" title="Generate" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="ED7-PY-Kgv">
@@ -1397,6 +1478,7 @@
                         <outlet property="firstNameTextField" destination="HJc-j2-cZ8" id="wln-hU-3bk"/>
                         <outlet property="imageView" destination="N5y-Gz-Z34" id="jhB-Yt-PKh"/>
                         <outlet property="issueDatePicker" destination="tCI-dz-cJe" id="hNp-6b-ufL"/>
+                        <outlet property="countryPopupButton" destination="kLS-Ur-qH7" id="RAZ-t7-Vie"/>
                         <outlet property="jurisdictionSpecificEndorsementCodesTextField" destination="e6O-SN-OGx" id="mMA-0P-d0z"/>
                         <outlet property="jurisdictionSpecificRestrictionCodesTextField" destination="Ih6-Z8-f16" id="Rk0-3S-MoS"/>
                         <outlet property="jurisdictionSpecificVehicleClassTextField" destination="uFM-jZ-R8a" id="hVP-MO-3zh"/>
@@ -1405,6 +1487,8 @@
                         <outlet property="physicalDescriptionHeightTextField" destination="v4W-cT-ZqM" id="lRa-vQ-moh"/>
                         <outlet property="sexPopupButton" destination="AlT-qi-kkG" id="uHy-jj-0BJ"/>
                         <outlet property="statePopupButton" destination="3Fy-GG-67k" id="eVj-sP-4dr"/>
+                        <outlet property="documentDiscriminatorTextField" destination="3zr-u6-dXn" id="uPu-dW-dfb"/>
+                        <outlet property="stateFilterSearchField" destination="9wC-hb-hce" id="9Lh-0F-hvt"/>
                         <outlet property="zipTextField" destination="KmQ-H9-SZw" id="7c5-8u-nVs"/>
                     </connections>
                 </viewController>
