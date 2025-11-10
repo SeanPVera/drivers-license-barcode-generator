@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Driver's License Barcode Generator</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <header class="app-header">
+      <div>
+        <h1>Driver's License Barcode Generator</h1>
+        <p class="lead">
+          Build AAMVA-compliant PDF417 barcodes right in your browser. Fill in the
+          form, generate a high-resolution barcode, and download it instantly for
+          free.
+        </p>
+      </div>
+      <button id="reset-form" type="button" class="secondary">Reset</button>
+    </header>
+
+    <main class="layout">
+      <section class="form-panel">
+        <form id="license-form" novalidate>
+          <h2>Document Details</h2>
+          <div class="field-grid">
+            <label>
+              <span>Issuer Identification Number</span>
+              <input
+                type="text"
+                id="iin"
+                name="iin"
+                maxlength="6"
+                inputmode="numeric"
+                required
+              />
+              <small>Six digits assigned to the issuing jurisdiction.</small>
+            </label>
+            <label>
+              <span>AAMVA Version</span>
+              <input
+                type="text"
+                id="aamva-version"
+                name="aamva-version"
+                maxlength="2"
+                inputmode="numeric"
+                required
+              />
+            </label>
+            <label>
+              <span>Jurisdiction Version</span>
+              <input
+                type="text"
+                id="jurisdiction-version"
+                name="jurisdiction-version"
+                maxlength="2"
+                inputmode="numeric"
+                required
+              />
+            </label>
+            <label>
+              <span>Subfile Type</span>
+              <select id="subfile-type" name="subfile-type">
+                <option value="DL">DL &mdash; Driver License</option>
+                <option value="ID">ID &mdash; Identification Card</option>
+              </select>
+            </label>
+            <label>
+              <span>Document Discriminator</span>
+              <div class="input-with-action">
+                <input
+                  type="text"
+                  id="document-discriminator"
+                  name="document-discriminator"
+                  maxlength="25"
+                  required
+                />
+                <button type="button" id="regenerate-discriminator" class="secondary small">New</button>
+              </div>
+            </label>
+            <label>
+              <span>Customer ID / License Number</span>
+              <input type="text" id="customer-id" name="customer-id" maxlength="25" required />
+            </label>
+            <label>
+              <span>Issue Date</span>
+              <input type="date" id="issue-date" name="issue-date" required />
+            </label>
+            <label>
+              <span>Expiration Date</span>
+              <input type="date" id="expiration-date" name="expiration-date" required />
+            </label>
+          </div>
+
+          <h2>Personal Information</h2>
+          <div class="field-grid">
+            <label>
+              <span>First Name</span>
+              <input type="text" id="first-name" name="first-name" maxlength="40" required />
+            </label>
+            <label>
+              <span>Middle Name(s)</span>
+              <input type="text" id="middle-name" name="middle-name" maxlength="40" />
+            </label>
+            <label>
+              <span>Last Name</span>
+              <input type="text" id="last-name" name="last-name" maxlength="40" required />
+            </label>
+            <label>
+              <span>Date of Birth</span>
+              <input type="date" id="date-of-birth" name="date-of-birth" required />
+            </label>
+            <label>
+              <span>Gender</span>
+              <select id="gender" name="gender"></select>
+            </label>
+            <label>
+              <span>Eye Color</span>
+              <select id="eye-color" name="eye-color"></select>
+            </label>
+            <div class="height-field">
+              <label>
+                <span>Height</span>
+                <input type="text" id="height" name="height" placeholder="e.g. 5'11&quot; or 180 cm" />
+              </label>
+              <label>
+                <span>Output Units</span>
+                <select id="height-output-unit" name="height-output-unit">
+                  <option value="imperial">Inches</option>
+                  <option value="metric">Centimeters</option>
+                </select>
+              </label>
+            </div>
+          </div>
+
+          <h2>Address</h2>
+          <div class="field-grid">
+            <label>
+              <span>Address Line 1</span>
+              <input type="text" id="address-line1" name="address-line1" maxlength="40" required />
+            </label>
+            <label>
+              <span>Address Line 2</span>
+              <input type="text" id="address-line2" name="address-line2" maxlength="40" />
+            </label>
+            <label>
+              <span>City</span>
+              <input type="text" id="city" name="city" maxlength="40" required />
+            </label>
+            <label>
+              <span>Jurisdiction</span>
+              <select id="jurisdiction" name="jurisdiction" required></select>
+            </label>
+            <label>
+              <span>Country</span>
+              <select id="country" name="country"></select>
+            </label>
+            <label>
+              <span>Postal Code</span>
+              <input type="text" id="postal-code" name="postal-code" maxlength="11" required />
+            </label>
+          </div>
+
+          <h2>Restrictions &amp; Classifications</h2>
+          <div class="field-grid">
+            <label>
+              <span>Vehicle Class (DCA)</span>
+              <input type="text" id="vehicle-class" name="vehicle-class" maxlength="12" />
+            </label>
+            <label>
+              <span>Restriction Codes (DCB)</span>
+              <input type="text" id="restriction-codes" name="restriction-codes" maxlength="12" />
+            </label>
+            <label>
+              <span>Endorsement Codes (DCD)</span>
+              <input type="text" id="endorsement-codes" name="endorsement-codes" maxlength="12" />
+            </label>
+          </div>
+
+          <div class="actions">
+            <label class="scale-control">
+              <span>Barcode Scale</span>
+              <input type="range" id="barcode-scale" name="barcode-scale" min="2" max="12" step="1" value="6" />
+              <output id="scale-value">6×</output>
+            </label>
+            <button type="submit" class="primary">Generate Barcode</button>
+          </div>
+
+          <div id="form-errors" role="alert" class="form-errors" hidden></div>
+        </form>
+      </section>
+
+      <section class="preview-panel">
+        <div class="preview-card">
+          <h2>Barcode Preview</h2>
+          <canvas id="barcode-canvas" width="600" height="350" role="img" aria-label="PDF417 barcode preview"></canvas>
+          <div class="preview-actions">
+            <button id="download-png" class="primary" type="button">Download PNG</button>
+            <button id="copy-payload" class="secondary" type="button">Copy Payload</button>
+          </div>
+          <textarea id="payload-output" readonly rows="12" spellcheck="false"></textarea>
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <p>
+        Built for accuracy and accessibility. All processing happens locally in your
+        browser so your data never leaves your device.
+      </p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bwip-js@3.3.1/dist/bwip-js-min.js"></script>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
