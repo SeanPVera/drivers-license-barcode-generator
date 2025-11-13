@@ -121,18 +121,22 @@ const RECORD_SEPARATOR = '\u001E';
 const SEGMENT_TERMINATOR = '\r';
 const FILE_TYPE = 'ANSI ';
 const SUBFILE_DESCRIPTOR_LENGTH = 10;
+const DEFAULT_IIN = '636000';
+const LATEST_AAMVA_VERSION = '08';
+const DEFAULT_JURISDICTION_VERSION = '00';
+const DEFAULT_EXPIRATION_YEARS = 4;
 
 function createDefaultState() {
   const today = new Date();
   const expiration = new Date(today);
-  expiration.setFullYear(expiration.getFullYear() + 4);
+  expiration.setFullYear(expiration.getFullYear() + DEFAULT_EXPIRATION_YEARS);
   const dob = new Date(today);
   dob.setFullYear(dob.getFullYear() - 30);
 
   return {
-    iin: '636000',
-    aamvaVersion: '08',
-    jurisdictionVersion: '00',
+    iin: DEFAULT_IIN,
+    aamvaVersion: LATEST_AAMVA_VERSION,
+    jurisdictionVersion: DEFAULT_JURISDICTION_VERSION,
     subfileType: 'DL',
     documentDiscriminator: randomDiscriminator(),
     customerId: '',
@@ -169,6 +173,12 @@ const downloadButton = document.getElementById('download-png');
 const copyButton = document.getElementById('copy-payload');
 const resetButton = document.getElementById('reset-form');
 const discriminatorButton = document.getElementById('regenerate-discriminator');
+const defaultIinButton = document.getElementById('fill-default-iin');
+const latestAamvaButton = document.getElementById('fill-latest-aamva');
+const defaultJurisdictionButton = document.getElementById('fill-default-jurisdiction');
+const sampleCustomerButton = document.getElementById('generate-customer-id');
+const issueTodayButton = document.getElementById('set-issue-today');
+const expirationButton = document.getElementById('set-expiration');
 
 init();
 
@@ -188,6 +198,41 @@ function init() {
     document.getElementById('document-discriminator').value = randomDiscriminator();
     saveState();
   });
+  if (defaultIinButton) {
+    defaultIinButton.addEventListener('click', () => {
+      setFieldValue('iin', DEFAULT_IIN);
+    });
+  }
+  if (latestAamvaButton) {
+    latestAamvaButton.addEventListener('click', () => {
+      setFieldValue('aamva-version', LATEST_AAMVA_VERSION);
+    });
+  }
+  if (defaultJurisdictionButton) {
+    defaultJurisdictionButton.addEventListener('click', () => {
+      setFieldValue('jurisdiction-version', DEFAULT_JURISDICTION_VERSION);
+    });
+  }
+  if (sampleCustomerButton) {
+    sampleCustomerButton.addEventListener('click', () => {
+      setFieldValue('customer-id', randomCustomerId());
+    });
+  }
+  if (issueTodayButton) {
+    issueTodayButton.addEventListener('click', () => {
+      setFieldValue('issue-date', formatInputDate(new Date()));
+    });
+  }
+  if (expirationButton) {
+    expirationButton.addEventListener('click', () => {
+      const issueField = document.getElementById('issue-date');
+      const issueDate = issueField ? parseDate(issueField.value) : null;
+      const baseDate = issueDate ?? new Date();
+      const expirationDate = new Date(baseDate);
+      expirationDate.setFullYear(expirationDate.getFullYear() + DEFAULT_EXPIRATION_YEARS);
+      setFieldValue('expiration-date', formatInputDate(expirationDate));
+    });
+  }
   document.getElementById('jurisdiction').addEventListener('change', syncCountryWithJurisdiction);
 }
 
@@ -536,6 +581,13 @@ function clearErrors() {
   errorsEl.innerHTML = '';
 }
 
+function setFieldValue(id, value) {
+  const field = document.getElementById(id);
+  if (!field) return;
+  field.value = value;
+  saveState();
+}
+
 function syncSanitizedValue(id, value) {
   const field = document.getElementById(id);
   if (!field || typeof value !== 'string') {
@@ -573,6 +625,16 @@ function randomDiscriminator() {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let result = '';
   for (let i = 0; i < 25; i += 1) {
+    const index = Math.floor(Math.random() * chars.length);
+    result += chars[index];
+  }
+  return result;
+}
+
+function randomCustomerId(length = 12) {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let result = '';
+  for (let i = 0; i < length; i += 1) {
     const index = Math.floor(Math.random() * chars.length);
     result += chars[index];
   }

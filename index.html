@@ -31,48 +31,101 @@
           <h2>Document Details</h2>
           <div class="field-grid">
             <label>
-              <span>Issuer Identification Number</span>
-              <input
-                type="text"
-                id="iin"
-                name="iin"
-                maxlength="6"
-                inputmode="numeric"
-                required
-              />
-              <small>Six digits assigned to the issuing jurisdiction.</small>
+              <span class="field-heading">
+                <span>Issuer Identification Number</span>
+                <button
+                  type="button"
+                  class="info-button"
+                  aria-label="What is the issuer identification number?"
+                  data-tooltip="Six-digit code assigned to the issuing jurisdiction. Use the recommended default if you're unsure."
+                >?
+                </button>
+              </span>
+              <div class="input-with-action">
+                <input
+                  type="text"
+                  id="iin"
+                  name="iin"
+                  maxlength="6"
+                  inputmode="numeric"
+                  required
+                />
+                <button type="button" id="fill-default-iin" class="tertiary small">Use default</button>
+              </div>
             </label>
             <label>
-              <span>AAMVA Version</span>
-              <input
-                type="text"
-                id="aamva-version"
-                name="aamva-version"
-                maxlength="2"
-                inputmode="numeric"
-                required
-              />
+              <span class="field-heading">
+                <span>AAMVA Version</span>
+                <button
+                  type="button"
+                  class="info-button"
+                  aria-label="What is the AAMVA version?"
+                  data-tooltip="Specifies which AAMVA DL/ID standard you are targeting. Version 08 is the most widely adopted current format."
+                >?
+                </button>
+              </span>
+              <div class="input-with-action">
+                <input
+                  type="text"
+                  id="aamva-version"
+                  name="aamva-version"
+                  maxlength="2"
+                  inputmode="numeric"
+                  required
+                />
+                <button type="button" id="fill-latest-aamva" class="tertiary small">Latest</button>
+              </div>
             </label>
             <label>
-              <span>Jurisdiction Version</span>
-              <input
-                type="text"
-                id="jurisdiction-version"
-                name="jurisdiction-version"
-                maxlength="2"
-                inputmode="numeric"
-                required
-              />
+              <span class="field-heading">
+                <span>Jurisdiction Version</span>
+                <button
+                  type="button"
+                  class="info-button"
+                  aria-label="What is the jurisdiction version?"
+                  data-tooltip="Two-digit code set by each jurisdiction to indicate its own data layout revisions. Use 00 if none is specified."
+                >?
+                </button>
+              </span>
+              <div class="input-with-action">
+                <input
+                  type="text"
+                  id="jurisdiction-version"
+                  name="jurisdiction-version"
+                  maxlength="2"
+                  inputmode="numeric"
+                  required
+                />
+                <button type="button" id="fill-default-jurisdiction" class="tertiary small">Use 00</button>
+              </div>
             </label>
             <label>
-              <span>Subfile Type</span>
+              <span class="field-heading">
+                <span>Subfile Type</span>
+                <button
+                  type="button"
+                  class="info-button"
+                  aria-label="What is the subfile type?"
+                  data-tooltip="Choose DL for driver licenses or ID for identification cards. This determines the subfile code used in the barcode."
+                >?
+                </button>
+              </span>
               <select id="subfile-type" name="subfile-type">
                 <option value="DL">DL &mdash; Driver License</option>
                 <option value="ID">ID &mdash; Identification Card</option>
               </select>
             </label>
             <label>
-              <span>Document Discriminator</span>
+              <span class="field-heading">
+                <span>Document Discriminator</span>
+                <button
+                  type="button"
+                  class="info-button"
+                  aria-label="What is the document discriminator?"
+                  data-tooltip="Unique identifier printed on the credential. Generate a random value to keep each barcode distinct."
+                >?
+                </button>
+              </span>
               <div class="input-with-action">
                 <input
                   type="text"
@@ -85,16 +138,52 @@
               </div>
             </label>
             <label>
-              <span>Customer ID / License Number</span>
-              <input type="text" id="customer-id" name="customer-id" maxlength="25" required />
+              <span class="field-heading">
+                <span>Customer ID / License Number</span>
+                <button
+                  type="button"
+                  class="info-button"
+                  aria-label="What is the customer ID?"
+                  data-tooltip="Primary license or identification number assigned to the credential holder. Generate a sample if you just need a placeholder."
+                >?
+                </button>
+              </span>
+              <div class="input-with-action">
+                <input type="text" id="customer-id" name="customer-id" maxlength="25" required />
+                <button type="button" id="generate-customer-id" class="tertiary small">Sample</button>
+              </div>
             </label>
             <label>
-              <span>Issue Date</span>
-              <input type="date" id="issue-date" name="issue-date" required />
+              <span class="field-heading">
+                <span>Issue Date</span>
+                <button
+                  type="button"
+                  class="info-button"
+                  aria-label="What is the issue date?"
+                  data-tooltip="The date the credential was issued. Set it to today for a freshly issued card."
+                >?
+                </button>
+              </span>
+              <div class="input-with-action">
+                <input type="date" id="issue-date" name="issue-date" required />
+                <button type="button" id="set-issue-today" class="tertiary small">Today</button>
+              </div>
             </label>
             <label>
-              <span>Expiration Date</span>
-              <input type="date" id="expiration-date" name="expiration-date" required />
+              <span class="field-heading">
+                <span>Expiration Date</span>
+                <button
+                  type="button"
+                  class="info-button"
+                  aria-label="What is the expiration date?"
+                  data-tooltip="When the credential stops being valid. Use the helper to set it a few years after the issue date."
+                >?
+                </button>
+              </span>
+              <div class="input-with-action">
+                <input type="date" id="expiration-date" name="expiration-date" required />
+                <button type="button" id="set-expiration" class="tertiary small">+4 years</button>
+              </div>
             </label>
           </div>
 
