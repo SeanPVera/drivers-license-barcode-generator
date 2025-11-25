@@ -14,13 +14,13 @@ class Header {
     static let recordSeparator = "\u{1E}"
     static let segmentTerminator = "\u{0D}"
     static let fileType = "ANSI "
-    
+
     let issuerIdentificationNumber: String
     let AAMVAVersionNumber: String
     let jurisdictionVersionNumber: String
-    let numberOfEntries: String
-    
-    init(issuerIdentificationNumber: String, AAMVAVersionNumber: String, jurisdictionVersionNumber: String, numberOfEntries: String) {
+    let numberOfEntries: Int
+
+    init(issuerIdentificationNumber: String, AAMVAVersionNumber: String, jurisdictionVersionNumber: String, numberOfEntries: Int) {
         self.issuerIdentificationNumber = issuerIdentificationNumber
         self.AAMVAVersionNumber = AAMVAVersionNumber
         self.jurisdictionVersionNumber = jurisdictionVersionNumber
@@ -39,7 +39,7 @@ extension Header: CustomStringConvertible {
             issuerIdentificationNumber,
             AAMVAVersionNumber,
             jurisdictionVersionNumber,
-            numberOfEntries,
-        ].joined(separator: "");
+            String(format: "%02d", numberOfEntries)
+        ].joined(separator: "")
     }
 }

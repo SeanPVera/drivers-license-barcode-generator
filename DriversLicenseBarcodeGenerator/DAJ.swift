@@ -2,6 +2,6 @@ import Foundation
 
 class DAJ: DataElement<String>, DataElementFormatable {
     func format() -> String {
-        return "DAJ\(DataElementFormatter.formatString(data, length: 6))"
+        return "DAJ\(DataElementFormatter.formatAlphanumeric(data, length: 3))"
     }
 }

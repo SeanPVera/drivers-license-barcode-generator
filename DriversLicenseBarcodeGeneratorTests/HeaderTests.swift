@@ -1,15 +1,10 @@
 import XCTest
 
 class HeaderTests: XCTestCase {
-    func testDescription() {
-        let expected = """
-        @
-        
-        ANSI 123456789
-        """
-        
-        let header = Header(issuerIdentificationNumber: "1234", AAMVAVersionNumber: "56", jurisdictionVersionNumber: "78", numberOfEntries: "9")
-        
+    func testDescriptionIncludesPaddedEntryCount() {
+        let expected = "@\n\u{1E}\rANSI 123456080101"
+        let header = Header(issuerIdentificationNumber: "123456", AAMVAVersionNumber: "08", jurisdictionVersionNumber: "01", numberOfEntries: 1)
+
         XCTAssertEqual(header.description, expected)
     }
 }

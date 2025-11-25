@@ -2,6 +2,6 @@ import Foundation
 
 class DAU: DataElement<Int>, DataElementFormatable {
     func format() -> String {
-        return "DAU\(data) IN"
+        return "DAU\(DataElementFormatter.formatHeight(inches: data, usesMetric: false))"
     }
 }

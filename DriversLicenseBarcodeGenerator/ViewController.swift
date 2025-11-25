@@ -9,11 +9,20 @@ class ViewController: NSViewController {
     @IBOutlet var lastNameTextField: NSTextField!
 
     @IBOutlet var address1TextField: NSTextField!
+    @IBOutlet var address2TextField: NSTextField!
     @IBOutlet var cityTextField: NSTextField!
     @IBOutlet var zipTextField: NSTextField!
     @IBOutlet var statePopupButton: NSPopUpButton!
     @IBOutlet var countryPopupButton: NSPopUpButton!
     @IBOutlet var stateFilterSearchField: NSSearchField!
+
+    @IBOutlet var issuerIdentificationNumberTextField: NSTextField!
+    @IBOutlet var aamvaVersionNumberTextField: NSTextField!
+    @IBOutlet var jurisdictionVersionNumberTextField: NSTextField!
+    @IBOutlet var subfileTypePopUpButton: NSPopUpButton!
+
+    @IBOutlet var barcodeScaleSlider: NSSlider!
+    @IBOutlet var barcodeScaleLabel: NSTextField!
 
     @IBOutlet var expirationDatePicker: NSDatePicker!
     @IBOutlet var issueDatePicker: NSDatePicker!
@@ -31,8 +40,14 @@ class ViewController: NSViewController {
     private var documentDiscriminatorValue = ViewController.makeDocumentDiscriminator()
     private var filteredJurisdictionOptions: [JurisdictionOption] = []
     private var lastGeneratedBarcode: Barcode?
+    private var lastRenderedBarcode: RenderedBarcode?
     private let defaults = UserDefaults.standard
     private var textFieldDefaultsMap: [NSTextField: String] = [:]
+
+    private enum BarcodeRenderingError: Error {
+        case generatorUnavailable
+        case outputFailure
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -43,6 +58,9 @@ class ViewController: NSViewController {
         configurePopUpMenus()
         updateDocumentDiscriminatorDisplay()
         restorePersistedSelections()
+
+        barcodeScaleSlider.target = self
+        barcodeScaleSlider.action = #selector(barcodeScaleDidChange(_:))
     }
 
     deinit {
@@ -75,6 +93,18 @@ class ViewController: NSViewController {
 
     private var customerMiddleNames: [String] {
         return middleNameComponents
+    }
+
+    private var sanitizedFamilyName: String {
+        return DataElementFormatter.sanitizedName(customerFamilyName)
+    }
+
+    private var sanitizedFirstName: String {
+        return DataElementFormatter.sanitizedName(customerFirstName)
+    }
+
+    private var sanitizedMiddleNameBlock: String {
+        return DataElementFormatter.sanitizedName(joinedMiddleNames)
     }
 
     private var documentIssueDate: Date {
@@ -116,6 +146,10 @@ class ViewController: NSViewController {
         return trimmedValue(from: address1TextField)
     }
 
+    private var addressStreet2: String {
+        return trimmedValue(from: address2TextField)
+    }
+
     private var addressCity: String {
         return trimmedValue(from: cityTextField)
     }
@@ -136,15 +170,32 @@ class ViewController: NSViewController {
         return trimmedValue(from: customerIDNumberTextField)
     }
 
+    private var issuerIdentificationNumber: String {
+        return trimmedValue(from: issuerIdentificationNumberTextField)
+    }
+
+    private var aamvaVersionNumber: String {
+        return trimmedValue(from: aamvaVersionNumberTextField)
+    }
+
+    private var jurisdictionVersionNumber: String {
+        return trimmedValue(from: jurisdictionVersionNumberTextField)
+    }
+
     private var documentDiscriminator: String {
-        let textFieldValue = documentDiscriminatorTextField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
-        if textFieldValue.isEmpty {
+        let textFieldValue = trimmedValue(from: documentDiscriminatorTextField)
+        let sanitized = DataElementFormatter.formatAlphanumeric(textFieldValue, length: 25)
+        if sanitized.isEmpty {
             documentDiscriminatorValue = ViewController.makeDocumentDiscriminator()
             updateDocumentDiscriminatorDisplay()
             return documentDiscriminatorValue
         }
 
-        documentDiscriminatorValue = textFieldValue
+        if sanitized != documentDiscriminatorTextField.stringValue {
+            documentDiscriminatorTextField.stringValue = sanitized
+        }
+
+        documentDiscriminatorValue = sanitized
         return documentDiscriminatorValue
     }
 
@@ -162,31 +213,62 @@ class ViewController: NSViewController {
         return .US
     }
 
+    private var selectedSubfileType: SubfileType {
+        if let raw = subfileTypePopUpButton.selectedItem?.representedObject as? String,
+           let type = SubfileType(rawValue: raw) {
+            return type
+        }
+
+        return .DL
+    }
+
+    private var barcodeScale: CGFloat {
+        return CGFloat(barcodeScaleSlider.doubleValue)
+    }
+
+    private var barcodeConfiguration: Barcode.Configuration {
+        return Barcode.Configuration(
+            issuerIdentificationNumber: issuerIdentificationNumber,
+            aamvaVersionNumber: aamvaVersionNumber,
+            jurisdictionVersionNumber: jurisdictionVersionNumber,
+            subfileType: selectedSubfileType
+        )
+    }
+
     private var dataElements: [DataElementFormatable] {
-        return [
-            DCA(jurisdictionSpecificVehicleClass),
-            DCB(jurisdictionSpecificRestrictionCodes),
-            DCD(jurisdictionSpecificEndorsementCodes),
-            DBA(documentExpirationDate),
+        var elements: [DataElementFormatable] = [
+            DAQ(customerIDNumber),
             DCS(customerFamilyName),
             DAC(customerFirstName),
             DAD(customerMiddleNames),
             DBD(documentIssueDate),
             DBB(dateOfBirth),
+            DBA(documentExpirationDate),
             DBC(physicalDescriptionSex),
             DAY(physicalDescriptionEyeColor),
             DAU(physicalDescriptionHeight),
-            DAG(addressStreet1),
+            DAG(addressStreet1)
+        ]
+
+        if !addressStreet2.isEmpty {
+            elements.append(DAH(addressStreet2))
+        }
+
+        elements.append(contentsOf: [
             DAI(addressCity),
             DAJ(addressJurisdictionCode),
             DAK(addressPostalCode),
-            DAQ(customerIDNumber),
             DCF(documentDiscriminator),
             DCG(countryIdentification),
             DDE(lastNameTruncation),
             DDF(firstNameTruncation),
             DDG(middleNameTruncation),
-        ]
+            DCA(jurisdictionSpecificVehicleClass),
+            DCB(jurisdictionSpecificRestrictionCodes),
+            DCD(jurisdictionSpecificEndorsementCodes),
+        ])
+
+        return elements
     }
 
     // MARK: - Actions
@@ -201,17 +283,30 @@ class ViewController: NSViewController {
             return
         }
 
-        let barcode = Barcode(dataElements: dataElements, issuerIdentificationNumber: "636000", AAMVAVersionNumber: "00", jurisdictionVersionNumber: "00")
+        let barcode = Barcode(dataElements: dataElements, configuration: barcodeConfiguration)
 
-        guard let image = generatePDF417Barcode(from: barcode) else {
+        do {
+            let rendered = try renderPDF417Barcode(from: barcode)
+            imageView.image = rendered.image
+            lastGeneratedBarcode = barcode
+            lastRenderedBarcode = rendered
+            clearValidationHighlights()
+        } catch Barcode.EncodingError.nonASCII {
             imageView.image = nil
+            lastRenderedBarcode = nil
+            lastGeneratedBarcode = nil
+            presentAlert(messageText: "Invalid Characters", informativeText: "AAMVA barcodes only support ASCII characters. Remove accented or special characters and try again.")
+        } catch BarcodeRenderingError.generatorUnavailable {
+            imageView.image = nil
+            lastRenderedBarcode = nil
+            lastGeneratedBarcode = nil
+            presentAlert(messageText: "Barcode Generator Unavailable", informativeText: "macOS could not load the PDF417 generator. Verify that Core Image is available on this system and try again.")
+        } catch {
+            imageView.image = nil
+            lastRenderedBarcode = nil
+            lastGeneratedBarcode = nil
             presentAlert(messageText: "Barcode Generation Failed", informativeText: "The PDF417 generator could not create an image for the provided data.")
-            return
         }
-
-        imageView.image = image
-        lastGeneratedBarcode = barcode
-        clearValidationHighlights()
     }
 
     @IBAction func copyBarcodeData(_ sender: Any) {
@@ -239,11 +334,62 @@ class ViewController: NSViewController {
     }
 
     @IBAction func stateSelectionDidChange(_ sender: NSPopUpButton) {
+        if let metadata = selectedStateMetadata,
+           let index = countryPopupButton.itemArray.firstIndex(where: { ($0.representedObject as? String) == metadata.countryRaw }) {
+            countryPopupButton.selectItem(at: index)
+            persistCountrySelection()
+        }
+
         persistStateSelection()
     }
 
     @IBAction func countrySelectionDidChange(_ sender: NSPopUpButton) {
         persistCountrySelection()
+    }
+
+    @IBAction func subfileTypeSelectionDidChange(_ sender: NSPopUpButton) {
+        persistSubfileTypeSelection()
+    }
+
+    @IBAction func barcodeScaleDidChange(_ sender: NSSlider) {
+        updateBarcodeScaleLabel()
+        persistBarcodeScale()
+    }
+
+    @IBAction func saveBarcodeImage(_ sender: Any) {
+        guard let rendered = lastRenderedBarcode else {
+            presentAlert(messageText: "No Barcode Available", informativeText: "Generate a barcode before exporting an image.")
+            return
+        }
+
+        let panel = NSSavePanel()
+        panel.allowedFileTypes = ["png"]
+        panel.canCreateDirectories = true
+        panel.nameFieldStringValue = "drivers-license-barcode.png"
+
+        let completion: (NSApplication.ModalResponse) -> Void = { response in
+            guard response == .OK, let url = panel.url else { return }
+
+            let bitmap = NSBitmapImageRep(cgImage: rendered.cgImage)
+            bitmap.size = rendered.image.size
+
+            guard let data = bitmap.representation(using: .png, properties: [:]) else {
+                self.presentAlert(messageText: "Export Failed", informativeText: "The PNG encoder could not create image data.")
+                return
+            }
+
+            do {
+                try data.write(to: url)
+            } catch {
+                self.presentAlert(messageText: "Export Failed", informativeText: "\(error.localizedDescription)")
+            }
+        }
+
+        if let window = view.window {
+            panel.beginSheetModal(for: window, completionHandler: completion)
+        } else {
+            completion(panel.runModal())
+        }
     }
 
     @IBAction func jurisdictionFilterChanged(_ sender: NSSearchField) {
@@ -263,24 +409,47 @@ class ViewController: NSViewController {
 
     // MARK: - Helpers
 
-    func generatePDF417Barcode(from barcode: Barcode) -> NSImage? {
+    func renderPDF417Barcode(from barcode: Barcode) throws -> RenderedBarcode {
+        let data = try barcode.encodedData()
+
         guard let filter = CIFilter(name: "CIPDF417BarcodeGenerator") else {
-            return nil
+            throw BarcodeRenderingError.generatorUnavailable
         }
 
-        filter.setValue(barcode.data, forKey: "inputMessage")
-        let transform = CGAffineTransform(scaleX: 3, y: 3)
+        filter.setValue(data, forKey: "inputMessage")
+        filter.setValue(NSNumber(value: 4.0), forKey: "inputQuietSpace")
+        filter.setValue(NSNumber(value: 4.0), forKey: "inputPreferredAspectRatio")
+        filter.setValue(NSNumber(value: 3), forKey: "inputCompactionMode")
 
-        guard let output = filter.outputImage?.transformed(by: transform),
-              let cgImage = output.toCGImage() else {
-            return nil
+        guard let outputImage = filter.outputImage else {
+            throw BarcodeRenderingError.outputFailure
         }
 
-        return NSImage(cgImage: cgImage, size: NSSize(width: 500, height: 100))
+        let transform = CGAffineTransform(scaleX: barcodeScale, y: barcodeScale)
+        let scaledImage = outputImage.transformed(by: transform)
+        guard let cgImage = scaledImage.toCGImage() else {
+            throw BarcodeRenderingError.outputFailure
+        }
+
+        let size = NSSize(width: scaledImage.extent.width, height: scaledImage.extent.height)
+        let image = NSImage(cgImage: cgImage, size: size)
+        return RenderedBarcode(image: image, cgImage: cgImage)
     }
 
     private func validateInputs() -> [ValidationIssue] {
         var issues: [ValidationIssue] = []
+
+        if issuerIdentificationNumber.count != 6 || !issuerIdentificationNumber.allSatisfy({ $0.isNumber }) {
+            issues.append(ValidationIssue(message: "Issuer Identification Number must be 6 digits.", control: issuerIdentificationNumberTextField))
+        }
+
+        if aamvaVersionNumber.count != 2 || !aamvaVersionNumber.allSatisfy({ $0.isNumber }) {
+            issues.append(ValidationIssue(message: "AAMVA version must be a two-digit number.", control: aamvaVersionNumberTextField))
+        }
+
+        if jurisdictionVersionNumber.count != 2 || !jurisdictionVersionNumber.allSatisfy({ $0.isNumber }) {
+            issues.append(ValidationIssue(message: "Jurisdiction version must be a two-digit number.", control: jurisdictionVersionNumberTextField))
+        }
 
         if customerFamilyName.isEmpty {
             issues.append(ValidationIssue(message: "Last name is required.", control: lastNameTextField))
@@ -310,8 +479,16 @@ class ViewController: NSViewController {
             issues.append(ValidationIssue(message: "Customer ID is required.", control: customerIDNumberTextField))
         }
 
-        if HeightParser.inches(from: physicalDescriptionHeightTextField.stringValue) == nil {
+        if let parsedHeight = HeightParser.inches(from: physicalDescriptionHeightTextField.stringValue) {
+            if parsedHeight < 36 || parsedHeight > 110 {
+                issues.append(ValidationIssue(message: "Height must be between 36 and 110 inches.", control: physicalDescriptionHeightTextField))
+            }
+        } else {
             issues.append(ValidationIssue(message: "Enter height in inches, feet/inches, or centimeters.", control: physicalDescriptionHeightTextField))
+        }
+
+        if trimmedValue(from: documentDiscriminatorTextField).isEmpty {
+            issues.append(ValidationIssue(message: "Document discriminator is required.", control: documentDiscriminatorTextField))
         }
 
         if documentExpirationDate < documentIssueDate {
@@ -347,6 +524,7 @@ class ViewController: NSViewController {
         configureGenderMenu()
         configureEyeColorMenu()
         configureCountryMenu()
+        configureSubfileTypeMenu()
         reloadStateMenu(selecting: nil)
     }
 
@@ -390,7 +568,9 @@ class ViewController: NSViewController {
     private func configureCountryMenu() {
         countryPopupButton.removeAllItems()
 
-        ViewController.countryOptions.forEach { option in
+        ViewController.countryOptions
+            .sorted { $0.title < $1.title }
+            .forEach { option in
             countryPopupButton.addItem(withTitle: option.title)
             countryPopupButton.itemArray.last?.representedObject = option.value.rawValue
         }
@@ -400,6 +580,23 @@ class ViewController: NSViewController {
 
         if let defaultIndex = countryPopupButton.itemArray.firstIndex(where: { ($0.representedObject as? String) == DataElementCountryIdentificationCode.US.rawValue }) {
             countryPopupButton.selectItem(at: defaultIndex)
+        }
+    }
+
+    private func configureSubfileTypeMenu() {
+        subfileTypePopUpButton.removeAllItems()
+
+        SubfileType.allCases.forEach { type in
+            let title = displayTitle(forSubfileType: type)
+            subfileTypePopUpButton.addItem(withTitle: title)
+            subfileTypePopUpButton.itemArray.last?.representedObject = type.rawValue
+        }
+
+        subfileTypePopUpButton.target = self
+        subfileTypePopUpButton.action = #selector(subfileTypeSelectionDidChange(_:))
+
+        if let defaultIndex = subfileTypePopUpButton.itemArray.firstIndex(where: { ($0.representedObject as? String) == SubfileType.DL.rawValue }) {
+            subfileTypePopUpButton.selectItem(at: defaultIndex)
         }
     }
 
@@ -442,6 +639,18 @@ class ViewController: NSViewController {
     private func restorePersistedSelections() {
         restorePersistedTextFields()
 
+        if issuerIdentificationNumberTextField.stringValue.isEmpty {
+            issuerIdentificationNumberTextField.stringValue = "636000"
+        }
+
+        if aamvaVersionNumberTextField.stringValue.isEmpty {
+            aamvaVersionNumberTextField.stringValue = "08"
+        }
+
+        if jurisdictionVersionNumberTextField.stringValue.isEmpty {
+            jurisdictionVersionNumberTextField.stringValue = "00"
+        }
+
         if let storedGender = defaults.value(forKey: DefaultsKey.selectedGender) as? Int,
            let index = sexPopupButton.itemArray.firstIndex(where: { ($0.representedObject as? NSNumber)?.intValue == storedGender }) {
             sexPopupButton.selectItem(at: index)
@@ -460,6 +669,16 @@ class ViewController: NSViewController {
         if let storedState = defaults.string(forKey: DefaultsKey.selectedStateCode) {
             reloadStateMenu(selecting: storedState)
         }
+
+        if let storedSubfileType = defaults.string(forKey: DefaultsKey.selectedSubfileType),
+           let index = subfileTypePopUpButton.itemArray.firstIndex(where: { ($0.representedObject as? String) == storedSubfileType }) {
+            subfileTypePopUpButton.selectItem(at: index)
+        }
+
+        let storedScale = defaults.object(forKey: DefaultsKey.barcodeScale) as? Double ?? 5.0
+        let clampedScale = min(max(storedScale, barcodeScaleSlider.minValue), barcodeScaleSlider.maxValue)
+        barcodeScaleSlider.doubleValue = clampedScale
+        updateBarcodeScaleLabel()
     }
 
     private func persistGenderSelection() {
@@ -495,6 +714,18 @@ class ViewController: NSViewController {
         clearValidationHighlight(for: countryPopupButton)
     }
 
+    private func persistSubfileTypeSelection() {
+        if let rawValue = subfileTypePopUpButton.selectedItem?.representedObject as? String {
+            defaults.set(rawValue, forKey: DefaultsKey.selectedSubfileType)
+        }
+
+        clearValidationHighlight(for: subfileTypePopUpButton)
+    }
+
+    private func persistBarcodeScale() {
+        defaults.set(barcodeScaleSlider.doubleValue, forKey: DefaultsKey.barcodeScale)
+    }
+
     @objc private func textFieldDidChange(_ notification: Notification) {
         guard let textField = notification.object as? NSTextField else { return }
 
@@ -515,9 +746,13 @@ class ViewController: NSViewController {
             .map { String($0) }
     }
 
+    private func updateBarcodeScaleLabel() {
+        barcodeScaleLabel.stringValue = String(format: "Scale: %.1fx", barcodeScaleSlider.doubleValue)
+    }
+
     private func updateDocumentDiscriminatorDisplay() {
         documentDiscriminatorTextField.stringValue = documentDiscriminatorValue
-        documentDiscriminatorTextField.isEditable = false
+        documentDiscriminatorTextField.isEditable = true
         documentDiscriminatorTextField.isSelectable = true
     }
 
@@ -530,22 +765,22 @@ class ViewController: NSViewController {
     }
 
     private var joinedMiddleNames: String {
-        return middleNameComponents.joined(separator: ",")
+        return middleNameComponents.joined(separator: " ")
     }
 
     private var lastNameTruncation: DataElementTruncation {
-        return truncationStatus(for: customerFamilyName, limit: 6)
+        return truncationStatus(forSanitizedValue: sanitizedFamilyName, limit: 40)
     }
 
     private var firstNameTruncation: DataElementTruncation {
-        return truncationStatus(for: customerFirstName, limit: 6)
+        return truncationStatus(forSanitizedValue: sanitizedFirstName, limit: 40)
     }
 
     private var middleNameTruncation: DataElementTruncation {
-        return truncationStatus(for: joinedMiddleNames, limit: 40)
+        return truncationStatus(forSanitizedValue: sanitizedMiddleNameBlock, limit: 40)
     }
 
-    private func truncationStatus(for value: String, limit: Int) -> DataElementTruncation {
+    private func truncationStatus(forSanitizedValue value: String, limit: Int) -> DataElementTruncation {
         return value.count > limit ? .Yes : .No
     }
 }
@@ -574,6 +809,11 @@ private extension ViewController {
         let value: DataElementCountryIdentificationCode
     }
 
+    struct RenderedBarcode {
+        let image: NSImage
+        let cgImage: CGImage
+    }
+
     enum DefaultsKey {
         static let selectedGender = "ViewController.selectedGender"
         static let selectedEyeColor = "ViewController.selectedEyeColor"
@@ -583,6 +823,7 @@ private extension ViewController {
         static let middleName = "ViewController.middleName"
         static let lastName = "ViewController.lastName"
         static let addressLine1 = "ViewController.addressLine1"
+        static let addressLine2 = "ViewController.addressLine2"
         static let city = "ViewController.city"
         static let postalCode = "ViewController.postalCode"
         static let vehicleClass = "ViewController.vehicleClass"
@@ -590,6 +831,12 @@ private extension ViewController {
         static let restrictionCodes = "ViewController.restrictionCodes"
         static let height = "ViewController.height"
         static let customerId = "ViewController.customerId"
+        static let issuerIdentificationNumber = "ViewController.issuerIdentificationNumber"
+        static let aamvaVersionNumber = "ViewController.aamvaVersionNumber"
+        static let jurisdictionVersionNumber = "ViewController.jurisdictionVersionNumber"
+        static let documentDiscriminator = "ViewController.documentDiscriminator"
+        static let barcodeScale = "ViewController.barcodeScale"
+        static let selectedSubfileType = "ViewController.selectedSubfileType"
     }
 
     var selectedStateMetadata: StateMetadata? {
@@ -603,7 +850,7 @@ private extension ViewController {
     }
 
     static func makeDocumentDiscriminator() -> String {
-        return UUID().uuidString.replacingOccurrences(of: "-", with: "").prefix(6).uppercased()
+        return UUID().uuidString.replacingOccurrences(of: "-", with: "").prefix(25).uppercased()
     }
 
     func configureTextFieldPersistence() {
@@ -612,6 +859,7 @@ private extension ViewController {
             middleNameTextField: DefaultsKey.middleName,
             lastNameTextField: DefaultsKey.lastName,
             address1TextField: DefaultsKey.addressLine1,
+            address2TextField: DefaultsKey.addressLine2,
             cityTextField: DefaultsKey.city,
             zipTextField: DefaultsKey.postalCode,
             jurisdictionSpecificVehicleClassTextField: DefaultsKey.vehicleClass,
@@ -619,6 +867,10 @@ private extension ViewController {
             jurisdictionSpecificRestrictionCodesTextField: DefaultsKey.restrictionCodes,
             physicalDescriptionHeightTextField: DefaultsKey.height,
             customerIDNumberTextField: DefaultsKey.customerId,
+            issuerIdentificationNumberTextField: DefaultsKey.issuerIdentificationNumber,
+            aamvaVersionNumberTextField: DefaultsKey.aamvaVersionNumber,
+            jurisdictionVersionNumberTextField: DefaultsKey.jurisdictionVersionNumber,
+            documentDiscriminatorTextField: DefaultsKey.documentDiscriminator,
         ]
 
         textFieldDefaultsMap.keys.forEach { textField in
@@ -653,15 +905,20 @@ private extension ViewController {
             middleNameTextField,
             lastNameTextField,
             address1TextField,
+            address2TextField,
             cityTextField,
             zipTextField,
             statePopupButton,
             countryPopupButton,
             physicalDescriptionHeightTextField,
             customerIDNumberTextField,
+            issuerIdentificationNumberTextField,
+            aamvaVersionNumberTextField,
+            jurisdictionVersionNumberTextField,
             jurisdictionSpecificVehicleClassTextField,
             jurisdictionSpecificEndorsementCodesTextField,
             jurisdictionSpecificRestrictionCodesTextField,
+            documentDiscriminatorTextField,
             expirationDatePicker,
             issueDatePicker,
             dateOfBirthDatePicker,
@@ -781,7 +1038,25 @@ private extension ViewController {
             CountryOption(title: "United Kingdom", value: .GB),
             CountryOption(title: "Germany", value: .DE),
             CountryOption(title: "France", value: .FR),
-            CountryOption(title: "Japan", value: .JP)
+            CountryOption(title: "Japan", value: .JP),
+            CountryOption(title: "Austria", value: .AT),
+            CountryOption(title: "Belgium", value: .BE),
+            CountryOption(title: "Brazil", value: .BR),
+            CountryOption(title: "China", value: .CN),
+            CountryOption(title: "Denmark", value: .DK),
+            CountryOption(title: "Spain", value: .ES),
+            CountryOption(title: "Finland", value: .FI),
+            CountryOption(title: "Ireland", value: .IE),
+            CountryOption(title: "Israel", value: .IL),
+            CountryOption(title: "India", value: .IN),
+            CountryOption(title: "Italy", value: .IT),
+            CountryOption(title: "South Korea", value: .KR),
+            CountryOption(title: "Netherlands", value: .NL),
+            CountryOption(title: "New Zealand", value: .NZ),
+            CountryOption(title: "Philippines", value: .PH),
+            CountryOption(title: "Sweden", value: .SE),
+            CountryOption(title: "Singapore", value: .SG),
+            CountryOption(title: "South Africa", value: .ZA)
         ]
     }
 
@@ -793,6 +1068,8 @@ private extension ViewController {
             return "Female"
         case .NotSpecified:
             return "Not Specified"
+        case .NonBinary:
+            return "Non-Binary"
         }
     }
 
@@ -804,6 +1081,8 @@ private extension ViewController {
             return "Blue"
         case .Brown:
             return "Brown"
+        case .Amber:
+            return "Amber"
         case .Dichromaic:
             return "Dichromatic"
         case .Gray:
@@ -818,6 +1097,15 @@ private extension ViewController {
             return "Pink"
         case .Unknown:
             return "Unknown"
+        }
+    }
+
+    func displayTitle(forSubfileType type: SubfileType) -> String {
+        switch type {
+        case .DL:
+            return "Driver License (DL)"
+        case .ID:
+            return "Identification Card (ID)"
         }
     }
 }

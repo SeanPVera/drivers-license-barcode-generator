@@ -1,7 +1,8 @@
 import Foundation
 
 enum DataElementGender: Int, CaseIterable {
+    case NotSpecified = 0
     case Male = 1
     case Female = 2
-    case NotSpecified = 3
+    case NonBinary = 9
 }

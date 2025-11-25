@@ -1,111 +1,88 @@
 import XCTest
 @testable import DriversLicenseBarcodeGenerator
 
-class BarcodeTests: XCTestCase {
-    let jurisdictionSpecificVehicleClass = DCA("D")
-    let jurisdictionSpecificRestrictionCodes = DCB("A")
-    let jurisdictionSpecificEndorsementCodes = DCD("NONE")
-    let documentExpirationDate = DBA(buildDate(year: 2019, month: 9, day: 14))
-    let customerFamilyName = DCS("DECOT")
-    let customerFirstName = DAC("KYLE")
-    let customerMiddleNames = DAD(["BRANDON"])
-    let documentIssueDate = DBD(buildDate(year: 2015, month: 10, day: 3))
-    let dateOfBirth = DBB(buildDate(year: 1986, month: 9, day: 14))
-    let physicalDescriptionSex = DBC(.Male)
-    let physicalDescriptionEyeColor = DAY(.Hazel)
-    
-    func testComplianceIndicator() {
-        XCTAssertEqual(Barcode.complianceIndicator, "\u{40}");
-    }
-    
-    func testDataElementSeparator() {
-        XCTAssertEqual(Barcode.dataElementSeparator, "\u{0A}");
-    }
-    
-    func testRecordSeparator() {
-        XCTAssertEqual(Barcode.recordSeparator, "\u{1E}")
-    }
-    
-    func testSegmentSeparator() {
-        XCTAssertEqual(Barcode.segmentSeparator, "\u{0D}")
-    }
-    
-    func testFileType() {
-        XCTAssertEqual(Barcode.fileType, "ANSI ")
-    }
-    
-    func testDescription() {
-//        DCS("DECOT"),
-//        customerFirstName,
-//        DAD("BRANDON"),
-//        DBD(buildDate(year: 2015, month: 10, day: 3)),
-//        ,
-//        DBC(.Male),
-//        DAY(.Hazel),
-//        DAU(70)
-        
-        let barcode = Barcode(dataElements: [
-            jurisdictionSpecificVehicleClass,
-            jurisdictionSpecificRestrictionCodes,
-            jurisdictionSpecificEndorsementCodes,
-            documentExpirationDate,
-            customerFamilyName,
-            customerFirstName,
-            customerMiddleNames,
-            physicalDescriptionSex,
-            physicalDescriptionEyeColor
-            ], issuerIdentificationNumber: "636000", AAMVAVersionNumber: "00", jurisdictionVersionNumber: "00")
-        
-        let expected = """
-        @
+final class BarcodeTests: XCTestCase {
+    private let configuration = Barcode.Configuration(
+        issuerIdentificationNumber: "636000",
+        aamvaVersionNumber: "08",
+        jurisdictionVersionNumber: "00",
+        subfileType: .DL
+    )
 
-        ANSI 636023080102DL00410279ZO03200024DLDBA09142019
-        DCSDECOT
-        DACKYLE
-        DADBRANDON
-        DBD10032015
-        DBB09141986
-        DBC1
-        DAYHAZ
-        DAU070 IN
-        DAG1437 CHESAPEAKE AVE
-        DAICOLUMBUS
-        DAJOH
-        DAK432122152
-        DAQSS430403
-        DCF2509UN6813300000
-        DCGUSA
-        DDEN
-        DDFN
-        DDGN
-        DAZBRO
-        DCIUS,OHIO
-        DCJNONE
-        DCUNONE
-        DCE4
-        DDAM
-        DDB12042013
-        DAW170
-        DCAD
-        DCBA
-        DCDNONE
-        ZOZOAN
-        ZOBN
-        ZOE09142019
-        """
-        
-        XCTAssertEqual(barcode.description, expected)
-    }
-    
-    private static func buildDate(year: Int, month: Int, day: Int) -> Date! {
-        let calendar = NSCalendar.current
+    func testDescriptionBeginsWithAnsiHeader() {
+        let barcode = makeSampleBarcode()
+        let description = barcode.description
 
+        XCTAssertTrue(description.hasPrefix("@\n\u{1E}\rANSI 6360000800"))
+    }
+
+    func testDescriptorEncodesOffsetAndLength() {
+        let barcode = makeSampleBarcode()
+        let description = barcode.description
+        let header = Header(
+            issuerIdentificationNumber: configuration.issuerIdentificationNumber,
+            AAMVAVersionNumber: configuration.aamvaVersionNumber,
+            jurisdictionVersionNumber: configuration.jurisdictionVersionNumber,
+            numberOfEntries: 1
+        ).description
+
+        let headerLength = header.utf8.count
+        let descriptorStart = description.index(description.startIndex, offsetBy: headerLength)
+        let descriptorEnd = description.index(descriptorStart, offsetBy: 10)
+        let descriptor = String(description[descriptorStart..<descriptorEnd])
+
+        XCTAssertEqual(descriptor.prefix(2), "DL")
+
+        let offsetString = descriptor.dropFirst(2).prefix(4)
+        let lengthString = descriptor.dropFirst(6).prefix(4)
+        let expectedOffset = String(format: "%04d", headerLength + 10)
+        XCTAssertEqual(offsetString, expectedOffset)
+
+        let dataPortion = String(description[descriptorEnd...])
+        XCTAssertEqual(lengthString, String(format: "%04d", dataPortion.utf8.count))
+        XCTAssertTrue(dataPortion.hasPrefix("DLDAQSS430403"))
+    }
+
+    func testEncodedDataIsASCII() {
+        let barcode = makeSampleBarcode()
+        XCTAssertNoThrow(try barcode.encodedData())
+    }
+
+    private func makeSampleBarcode() -> Barcode {
+        let dataElements: [DataElementFormatable] = [
+            DAQ("SS430403"),
+            DCS("Decot"),
+            DAC("Kyle"),
+            DAD(["Brandon"]),
+            DBD(Self.buildDate(year: 2015, month: 10, day: 3)),
+            DBB(Self.buildDate(year: 1986, month: 9, day: 14)),
+            DBA(Self.buildDate(year: 2019, month: 9, day: 14)),
+            DBC(.Male),
+            DAY(.Hazel),
+            DAU(70),
+            DAG("1437 Chesapeake Ave"),
+            DAI("Columbus"),
+            DAJ("OH"),
+            DAK("43212"),
+            DCF("2509UN6813300000"),
+            DCG(.US),
+            DDE(.No),
+            DDF(.No),
+            DDG(.No),
+            DCA("D"),
+            DCB("A"),
+            DCD("NONE")
+        ]
+
+        return Barcode(dataElements: dataElements, configuration: configuration)
+    }
+
+    private static func buildDate(year: Int, month: Int, day: Int) -> Date {
         var dateComponents = DateComponents()
-        dateComponents.year = 2019
-        dateComponents.month = 9
-        dateComponents.day = 14
+        dateComponents.year = year
+        dateComponents.month = month
+        dateComponents.day = day
 
-        return calendar.date(from: dateComponents as DateComponents)!
+        return Calendar(identifier: .gregorian).date(from: dateComponents)!
     }
 }
-

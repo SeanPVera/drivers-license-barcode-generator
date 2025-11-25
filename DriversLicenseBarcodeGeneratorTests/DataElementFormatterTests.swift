@@ -1,11 +1,22 @@
 import XCTest
 @testable import DriversLicenseBarcodeGenerator
 
-class DataElementFormatterTests: XCTestCase {
-    let date = buildDate(year: 1986, month: 9, day: 14)!
+final class DataElementFormatterTests: XCTestCase {
+    private let date = buildDate(year: 1986, month: 9, day: 14)
 
-    func testFormatString() {
-        XCTAssertEqual(DataElementFormatter.formatString("KYLEDECOT", length: 5), "KYLED")
+    func testFormatNameStripsDiacriticsAndUppercases() {
+        let formatted = DataElementFormatter.formatName("Élodie-Marie", length: 40)
+        XCTAssertEqual(formatted, "ELODIE-MARIE")
+    }
+
+    func testFormatStreetPreservesUnitSymbols() {
+        let formatted = DataElementFormatter.formatStreet("123 Main St. #5B", length: 35)
+        XCTAssertEqual(formatted, "123 MAIN ST. #5B")
+    }
+
+    func testFormatAlphanumericTruncates() {
+        let formatted = DataElementFormatter.formatAlphanumeric("ABC1234567890", length: 10)
+        XCTAssertEqual(formatted, "ABC1234567")
     }
 
     func testFormatPostalCodePadsNumericZip() {
@@ -24,14 +35,20 @@ class DataElementFormatterTests: XCTestCase {
         XCTAssertEqual(DataElementFormatter.formatDate(date: date), "09141986")
     }
 
-    fileprivate static func buildDate(year: Int, month: Int, day: Int) -> Date! {
-        let calendar = NSCalendar.current
+    func testFormatHeightInInches() {
+        XCTAssertEqual(DataElementFormatter.formatHeight(inches: 70, usesMetric: false), "070 IN")
+    }
 
-        var dateComponents = DateComponents()
-        dateComponents.year = year
-        dateComponents.month = month
-        dateComponents.day = day
+    func testFormatHeightInCentimeters() {
+        XCTAssertEqual(DataElementFormatter.formatHeight(inches: 70, usesMetric: true), "178 CM")
+    }
 
-        return calendar.date(from: dateComponents as DateComponents)!
+    private func buildDate(year: Int, month: Int, day: Int) -> Date {
+        var components = DateComponents()
+        components.year = year
+        components.month = month
+        components.day = day
+
+        return Calendar(identifier: .gregorian).date(from: components)!
     }
 }

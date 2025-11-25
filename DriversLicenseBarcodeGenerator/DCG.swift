@@ -1,7 +1,7 @@
 import Foundation
 
-class DCG: DataElement<DataElementCountryIdentificationCode>, DataElementFormatable {    
+class DCG: DataElement<DataElementCountryIdentificationCode>, DataElementFormatable {
     func format() -> String {
-        return "DCG\(DataElementFormatter.formatString(data.rawValue, length: 6))"
+        return "DCG\(DataElementFormatter.formatAlphanumeric(data.rawValue, length: 3))"
     }
 }
