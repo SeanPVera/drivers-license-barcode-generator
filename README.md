@@ -6,7 +6,7 @@ A modern, free, browser-based tool for producing AAMVA-compliant PDF417 barcodes
 
 - **AAMVA-spec payload assembly** – Builds the ANSI header, DL/ID subfile descriptor, and core data elements with correct separators and byte counts.
 - **Smart sanitization** – Normalizes names, addresses, and identifiers to the character and length limits defined by the current AAMVA standard.
-- **Jurisdiction-aware defaults** – Includes every U.S. state and Canadian province with automatic country syncing, plus international country codes supported by AAMVA.
+- **Jurisdiction-aware defaults** – Includes every U.S. state with automatic U.S. country locking for AAMVA DL/ID payloads.
 - **High-resolution rendering** – Uses BWIP-JS to render PDF417 barcodes at configurable scales with generous quiet zones for scanning reliability.
 - **Stateful UX** – Persists the most recent form entries locally (in `localStorage`) so frequent users can resume where they left off.
 
