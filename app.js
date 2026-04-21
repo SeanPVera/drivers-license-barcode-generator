@@ -49,49 +49,11 @@ const JURISDICTIONS = [
   { name: 'Washington', code: 'WA', country: 'USA' },
   { name: 'West Virginia', code: 'WV', country: 'USA' },
   { name: 'Wisconsin', code: 'WI', country: 'USA' },
-  { name: 'Wyoming', code: 'WY', country: 'USA' },
-  { name: 'Alberta', code: 'AB', country: 'CAN' },
-  { name: 'British Columbia', code: 'BC', country: 'CAN' },
-  { name: 'Manitoba', code: 'MB', country: 'CAN' },
-  { name: 'New Brunswick', code: 'NB', country: 'CAN' },
-  { name: 'Newfoundland and Labrador', code: 'NL', country: 'CAN' },
-  { name: 'Nova Scotia', code: 'NS', country: 'CAN' },
-  { name: 'Ontario', code: 'ON', country: 'CAN' },
-  { name: 'Prince Edward Island', code: 'PE', country: 'CAN' },
-  { name: 'Quebec', code: 'QC', country: 'CAN' },
-  { name: 'Saskatchewan', code: 'SK', country: 'CAN' },
-  { name: 'Northwest Territories', code: 'NT', country: 'CAN' },
-  { name: 'Nunavut', code: 'NU', country: 'CAN' },
-  { name: 'Yukon', code: 'YT', country: 'CAN' }
+  { name: 'Wyoming', code: 'WY', country: 'USA' }
 ];
 
 const COUNTRIES = [
-  { value: 'USA', label: 'United States' },
-  { value: 'CAN', label: 'Canada' },
-  { value: 'MEX', label: 'Mexico' },
-  { value: 'AUS', label: 'Australia' },
-  { value: 'GBR', label: 'United Kingdom' },
-  { value: 'DEU', label: 'Germany' },
-  { value: 'FRA', label: 'France' },
-  { value: 'JPN', label: 'Japan' },
-  { value: 'AUT', label: 'Austria' },
-  { value: 'BEL', label: 'Belgium' },
-  { value: 'BRA', label: 'Brazil' },
-  { value: 'CHN', label: 'China' },
-  { value: 'DNK', label: 'Denmark' },
-  { value: 'ESP', label: 'Spain' },
-  { value: 'FIN', label: 'Finland' },
-  { value: 'IRL', label: 'Ireland' },
-  { value: 'ISR', label: 'Israel' },
-  { value: 'IND', label: 'India' },
-  { value: 'ITA', label: 'Italy' },
-  { value: 'KOR', label: 'South Korea' },
-  { value: 'NLD', label: 'Netherlands' },
-  { value: 'NZL', label: 'New Zealand' },
-  { value: 'PHL', label: 'Philippines' },
-  { value: 'SWE', label: 'Sweden' },
-  { value: 'SGP', label: 'Singapore' },
-  { value: 'ZAF', label: 'South Africa' }
+  { value: 'USA', label: 'United States' }
 ];
 
 const GENDERS = [
@@ -255,6 +217,7 @@ function populateOptions() {
     option.textContent = `${c.label} (${c.value})`;
     countrySelect.append(option);
   });
+  countrySelect.value = 'USA';
 
   const genderSelect = document.getElementById('gender');
   genderSelect.innerHTML = '';
@@ -279,7 +242,6 @@ function restoreState() {
   const saved = getSavedState();
   const defaults = createDefaultState();
   const state = { ...defaults, ...saved };
-  const hasSavedCountry = Object.prototype.hasOwnProperty.call(saved, 'country');
 
   Object.entries(state).forEach(([key, value]) => {
     const field = document.getElementById(toInputId(key));
@@ -291,9 +253,7 @@ function restoreState() {
     }
   });
   scaleValue.textContent = `${scaleInput.value}×`;
-  if (!hasSavedCountry) {
-    syncCountryWithJurisdiction();
-  }
+  syncCountryWithJurisdiction();
 }
 
 function getSavedState() {
@@ -437,7 +397,7 @@ function buildDataElements(values) {
 
   const heightFormatted = formatHeight(heightResult ?? 0, heightOutputUnit === 'metric');
 
-  const country = values['country'] || inferCountryFromJurisdiction(jurisdiction) || 'USA';
+  const country = 'USA';
 
   const truncFirst = truncationStatus(sanitizeName(firstName), 40);
   const truncMiddle = truncationStatus(sanitizeName(middleName), 40);
@@ -566,8 +526,8 @@ function syncCountryWithJurisdiction() {
   const jurisdictionSelect = document.getElementById('jurisdiction');
   const countryField = document.getElementById('country');
   const selected = jurisdictionSelect.selectedOptions[0];
-  if (selected && selected.dataset.country) {
-    countryField.value = selected.dataset.country;
+  if (selected) {
+    countryField.value = 'USA';
   }
 }
 
@@ -756,11 +716,6 @@ function sanitize(value, allowedSet, length, { collapseWhitespace }) {
 function truncationStatus(value, limit) {
   if (!value) return 'N';
   return value.length > limit ? 'T' : 'N';
-}
-
-function inferCountryFromJurisdiction(code) {
-  const match = JURISDICTIONS.find((j) => j.code === code);
-  return match ? match.country : null;
 }
 
 function debounce(fn, wait) {
